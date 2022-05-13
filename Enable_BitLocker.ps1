@@ -1,5 +1,3 @@
-# This script enables BitLocker drive encryption on Dell computers and sends the recovery key to a custom field in Atera.
-
 Set-ExecutionPolicy Bypass -Scope Process -Force
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
