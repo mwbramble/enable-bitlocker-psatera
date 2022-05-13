@@ -1,0 +1,9 @@
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Install-Module PSAtera -Force
+Import-Module PSAtera -Force
+Set-AteraAPIKey -APIKey {your_api_key_here}
+
+$TVID = (Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\TeamViewer").ClientID
+$agent = Get-AteraAgent
+
+Set-AteraCustomValue -ObjectType Agent -ObjectID $agent.AgentID -FieldName "Teamviewer" -Value $TVID
