@@ -1,0 +1,34 @@
+Set-ExecutionPolicy Bypass -Scope Process
+
+if (!(Get-Module -ListAvailable PSAtera)) {
+    'Install PSAtera module on this client'
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityPotocol -bor 3072
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+    Install-Module PSAtera -Force
+}
+
+'Import PSAtera module'
+Import-Module -Name PSAtera
+
+Set-AteraAPIKey -APIKey {your_api_key_here}
+$agent = Get-AteraAgent
+
+if (-not ((Get-WmiObject win32_bios).Manufacturer -like "Dell*")) {
+    Write-Error "Command must be run against a Dell computer"
+    exit 1
+}
+
+if (-not (Get-Module -ListAvailable -Name GetBIOS)) {
+    Install-Module -Name DellBIOSProvider -Force
+}
+
+Import-Module DellBIOSProvider
+
+if(Test-Path dellsmbios:\) {
+    $ManufactureDate = Get-Item -Path dellsmbios:\SystemInformation\ManufactureDate | Select-Object -ExpandProperty CurrentValue
+    $ShipDate = Get-Item -Path dellsmbios:\SystemInformation\OwnershipDate | Select-Object -ExpandProperty CurrentValue
+    Set-AteraCustomValue -FieldName "Manufacture Date" -ObjectID $agent.AgentID -ObjectType Agent -Value $ManufactureDate
+    Set-AteraCustomValue -FieldName "Ship Date" -ObjectID $agent.AgentID -ObjectType Agent -Value $ShipDate
+} else {
+    Write-Error "Command was unsuccessful."
+}
