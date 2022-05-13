@@ -1,0 +1,27 @@
+Set-ExecutionPolicy Bypass -Scope Process
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Install-Module PSAtera -Force
+Import-Module PSAtera -Force
+Set-AteraAPIKey -APIKey {your_api_key_here}
+
+$BitlockerVolumers = Get-BitLockerVolume
+$agent = Get-AteraAgent
+$currKey = 1
+
+$BitlockerVolumers |
+    ForEach-Object{
+        $RecoveryKey = [string]($_.KeyProtector).RecoveryPassword
+        if($RecoveryKey.Length -lt 2 -and $currKey -eq 1){
+            Set-AteraCustomValue -ObjectType Agent -ObjectID $agent.AgentID -FieldName "Bitlocker Key 1" -Value "NOT ENCRYPTED"
+        }
+        else{
+            $SplitKeys = $RecoveryKey.split(" ")
+            foreach($Key in $SplitKeys){
+                if($Key.Length -gt 1){
+                    $MountPoint = $_.MountPoint
+                    Set-AteraCustomValue -ObjectType Agent -ObjectID $agent.AgentID -FieldName "Bitlocker Key $currKey" -Value "$MountPoint\ $key"
+                    $currKey += 1
+                }
+            }
+        }
+    }
